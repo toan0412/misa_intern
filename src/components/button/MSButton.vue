@@ -17,7 +17,7 @@ export default {
       type: String,
       default: 'primaryColor',
     },
-    textColor:{
+    textColor: {
       type: String,
       default: 'white'
     }
@@ -26,31 +26,37 @@ export default {
     return {
       colors: {
         primaryColor: '#03ae66',
-        red: '#ff0000',
-        blue: '#0000ff',
         white: '#ffffff',
-        black: '#000000',
-        gray: '#e0e0e0'
+        black: '#3d3f4e',
       }
     };
   },
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .enable-button {
-  font-size: 14px;
+  font-size: 13px;
   padding-left: 12px;
   padding-right: 12px;
   margin: 0 0 0 8px;
   height: 32px;
   border-radius: 4px;
   min-width: 96px;
+  border: 1px solid var(--ms-border-button);
+}
+
+.v-btn__content {
+  font-weight: 600 !important;
 }
 
 .enable-button:disabled {
-  background-color: #e0e0e0 !important;
-  color: #a6a6a6 !important;
+  background-color: var(--ms-disable-background-button) !important;
+  color: var(--ms-disable-text-button) !important;
   cursor: not-allowed;
+}
+
+.v-btn--variant-elevated {
+  box-shadow: unset !important;
 }
 </style>

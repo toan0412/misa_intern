@@ -32,9 +32,12 @@
         </div>
       </div>
 
+      <!-- table with skeleton loader -->
+      <v-skeleton-loader v-if="loading" class="mx-auto" elevation="12" max-width="1800" type="table"></v-skeleton-loader>
+
       <!-- table -->
-      <v-data-table class="custom-table" :headers="headers" v-model="selected" :items="teachers" :items-per-page="12"
-        item-value="ID" show-select>
+      <v-data-table v-else class="custom-table" :headers="headers" v-model="selected" :items="teachers" item-value="ID"
+        show-select>
         <template v-slot:item.isTraining="{ item }">
           <v-icon v-if="item.isTraining">mdi-check</v-icon>
         </template>
@@ -43,14 +46,18 @@
         </template>
         <template v-slot:item.actions="{ item }">
           <v-icon small class="mr-2" @click="showAddForm(item.ID)">mdi-pencil-outline</v-icon>
-          <v-icon small @click="showDialog(item.ID)">mdi-trash-can-outline</v-icon>
+          <v-icon small @click="showDeleteDialog(item.ID)">mdi-trash-can-outline</v-icon>
         </template>
       </v-data-table>
+
       <div>
-        <yes-no-dialog ref="yesNoDialog" title="Thông báo"
-          message="Bạn có chắc chắn muốn xoá Cán bộ giáo viên đang chọn không?" @response="handleResponseDialog" />
+        <yes-no-dialog ref="deleteDialog" message="Bạn có chắc chắn muốn xoá Cán bộ giáo viên đang chọn không?"
+          @response="handleReponseDeleteDialog" />
+        <yes-no-dialog ref="editDialog" message="Dữ liệu đã bị thay đổi, bạn có muốn lưu lại không?"
+          @response="handleReponseEditDialog" />
         <AddNewTeacherForm ref="addNewTeacherForm" :currentTeacher="selectedTeacher" :nextId="nextId"
           @response="handleResponseAddForm" />
+        <Toast ref="snackbar" />
       </div>
     </div>
   </div>
@@ -61,20 +68,22 @@ import MSButton from '@/components/button/MSButton.vue'
 import IconButton from '@/components/button/IconButton.vue'
 import { getAllTeachers, deleteTeacher, addTeacher, getATeacher, editTeacher, getNextId } from '@/services/TeachersServices'
 import { defineAsyncComponent } from 'vue'
+import Toast from '@/components/toast/Toast.vue'
 
 export default {
   data: () => ({
+    loading: true,
     selected: [],
     teachers: [],
     headers: [
-      { title: 'Số hiệu cán bộ', value: 'ID' },
-      { title: 'Họ và tên', key: 'FullName' },
-      { title: 'Số điện thoại', key: 'Phone' },
-      { title: 'Tổ chuyên môn', key: 'Department' },
-      { title: 'QL theo môn', key: 'DeviceManaged' },
-      { title: 'QL kho phòng', key: 'DepartmentManaged' },
-      { title: 'Đào tạo QLTB', key: 'isTraining' },
-      { title: 'Đang làm việc', key: 'isWorking' },
+      { title: 'Số hiệu cán bộ', value: 'ID', align: 'center' },
+      { title: 'Họ và tên', key: 'FullName', sortable: false },
+      { title: 'Số điện thoại', key: 'Phone', sortable: false },
+      { title: 'Tổ chuyên môn', key: 'Department', sortable: false },
+      { title: 'QL theo môn', key: 'DeviceManaged', sortable: false },
+      { title: 'QL kho phòng', key: 'DepartmentManaged', sortable: false },
+      { title: 'Đào tạo QLTB', key: 'isTraining', sortable: false },
+      { title: 'Đang làm việc', key: 'isWorking', sortable: false },
       { title: '', key: 'actions', sortable: false }
     ],
     dialog: false,
@@ -97,13 +106,22 @@ export default {
           this.teachers = teachers
           this.originalTeachers = teachers
         })
+        .finally(() => {
+          this.loading = false;
+        });
+
     },
     //Thêm 1 giáo viên
     addItem(newTeacher) {
       addTeacher(newTeacher)
         .then(() => {
           this.fetchTeachers();
+          this.triggerSnackbar('success', 'Thành công', 'Thêm giảng viên thành công')
         })
+        .catch((error) => {
+          this.triggerSnackbar('error', 'Lỗi', 'Vui lòng nhập đầy đủ dữ liệu');
+        });
+
     },
     //Lấy thông tin giáo viên theo ID
     getAItem(ID) {
@@ -117,6 +135,7 @@ export default {
       deleteTeacher(ID)
         .then(() => {
           this.teachers = this.teachers.filter(teacher => teacher.ID !== ID);
+          this.triggerSnackbar('success', 'Thành công', 'Xóa giảng viên thành công')
         })
     },
     //Cập nhật thông tin 1 giáo viên theo ID
@@ -124,7 +143,11 @@ export default {
       editTeacher(ID, updatedTeacher)
         .then(() => {
           this.fetchTeachers();
+          this.triggerSnackbar('success', 'Thành công', 'Sửa thông tin giảng viên thành công')
         })
+        .catch((error) => {
+          this.triggerSnackbar('error', 'Lỗi', 'Có lỗi xảy ra');
+        });
     },
     //Lấy ID để thêm
     getNextIdItem() {
@@ -135,9 +158,14 @@ export default {
     },
 
     //Hiển thị dialog cảnh báo xóa    
-    showDialog(ID) {
+    showDeleteDialog(ID) {
       this.idSelected = ID;
-      this.$refs.yesNoDialog.openDialog();
+      this.$refs.deleteDialog.openDialog();
+    },
+    //Hiển thị dialog cảnh báo sửa
+    showEditDialog(editTeacher) {
+      this.selectedTeacher = { ...editTeacher };
+      this.$refs.editDialog.openDialog();
     },
     //Hiển thị form thêm giáo viên
     showAddForm(ID) {
@@ -149,27 +177,39 @@ export default {
       }
       this.$refs.addNewTeacherForm.openDialog();
     },
-    //Xử lý action trong dialog cảnh báo
-    handleResponseDialog(answer) {
-      if (answer) {
-        this.deleteItem(this.idSelected)
-        this.idSelected = null;
-      }
+    //Xử lý action trong dialog cảnh báo xóa
+    handleReponseDeleteDialog(answer) {
+      if (!answer) return
+      this.deleteItem(this.idSelected)
+      this.idSelected = null;
     },
+    //Xử lý action trong dialog cảnh báo sửa
+    handleReponseEditDialog(answer) {
+      if (!answer) return
+      console.log(this.selectedTeacher);
+      this.updateItem(this.idSelected, this.selectedTeacher)
+      this.idSelected = null;
+    },
+
     //Xử lý action trong form thêm giáo viên
     handleResponseAddForm({ answer, newTeacher }) {
-      if (answer) {
-        if (this.idSelected == '-1') {
-          //handle add
-          this.addItem(newTeacher);
-          this.idSelected = null;
-        }
-        else {
-          //handle edit
-          this.updateItem(this.idSelected, newTeacher)
-        }
+      if (!answer) return;
+      if (this.idSelected == '-1') {
+        //handle add
+        this.addItem(newTeacher);
+        this.idSelected = null;
       }
-    }
+      else {
+        //handle edit
+        this.showEditDialog(newTeacher)
+      }
+    },
+
+    //Hàm gọi Toast
+    triggerSnackbar(type, title, message) {
+      this.$refs.snackbar.showSnackbar(type, title, message);
+    },
+
   },
   //Theo dõi searchInput
   watch: {
@@ -194,6 +234,7 @@ export default {
     AddNewTeacherForm: defineAsyncComponent(() =>
       import('./AddNewTeacherForm.vue')
     ),
+    Toast
   }
 }
 </script>
@@ -268,28 +309,41 @@ export default {
   }
 
   thead {
-    background-color: #eaecef;
-  }
+    tr {
+      th {
+        height: 64px !important;
+        background-color: var(--ms-header-gridpanel);
+      }
+    }
 
-  .v-data-table-header__content {
-    color: black;
-  }
-
-  .v-data-table__td:nth-child(3),
-  .v-data-table__td:nth-child(8),
-  .v-data-table__td:nth-child(9) {
-    color: #03ae66;
-  }
-
-  .v-data-table__td:nth-child(10) {
-    .mdi-pencil-outline {
-      color: #03ae66;
+    .v-data-table-header__content {
+      justify-content: center;
     }
   }
 
-  .v-data-table-footer {
-    justify-content: flex-start;
-    margin-left: 12px;
+  tbody {
+
+    .v-data-table__td:nth-child(3),
+    .v-data-table__td:nth-child(8),
+    .v-data-table__td:nth-child(9) {
+      color: var(--ms-primary-color);
+    }
+
+    .v-data-table__td:nth-child(10) {
+      .mdi-pencil-outline {
+        color: #03ae66;
+      }
+    }
+
+    tr {
+      td {
+        height: 40px !important;
+      }
+    }
+
   }
+
+
+
 }
 </style>

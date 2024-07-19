@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import "@/assets/base.css"
 import Sidebar from "./components/sidebar/Sidebar.vue";
 
 export default {

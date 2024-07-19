@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const route = require('../backend/routes/teachers.route.cjs');
 const cors = require('cors');
 
-const port = process.env.PORT || 3000;
+const port = 3000;
 
 app.listen(port, () => {
   console.log('API server started on: ' + port);

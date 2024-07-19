@@ -10,9 +10,6 @@
               </template>
             </v-list-item>
           </v-list>
-
-          <v-divider></v-divider>
-
           <v-list density="compact" nav>
             <router-link class="link" to="/">
               <v-list-item prepend-icon="mdi-poll" title="Tổng quan" value="overview"></v-list-item>
@@ -57,7 +54,8 @@ export default {
   .custom-navigation {
     min-width: 72px;
     max-width: 220px;
-    background-color: #24344b;
+    background-color: var(--ms-background-sidebar);
+    border-right: 0;
   }
 
   .v-list--one-line {

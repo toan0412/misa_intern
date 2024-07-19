@@ -20,11 +20,11 @@ export default {
   props: {
     title: {
       type: String,
-      default: 'Confirm'
+      default: 'Thông báo'
     },
     message: {
       type: String,
-      default: 'Are you sure?'
+      default: 'Bạn có chắc chắn không?'
     }
   },
   data() {

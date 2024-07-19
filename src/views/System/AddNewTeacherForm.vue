@@ -7,8 +7,8 @@
             <v-img :width="150" aspect-ratio="16/9"
               src="https://media.istockphoto.com/id/517998264/vector/male-user-icon.jpg?s=612x612&w=0&k=20&c=4RMhqIXcJMcFkRJPq6K8h7ozuUoZhPwKniEke6KYa_k="></v-img>
           </div>
-          <div class="text-h7 generate_name">{{ newTeacher.fullName ? newTeacher.fullName : 'Họ và tên' }}</div>
-          <div class="text-subtitle-1 genarate_id">{{ newTeacher.id ? newTeacher.id : 'SHCB' }}</div>
+          <div class="text-h7 generate_name">{{ newTeacher.fullName || 'Họ và tên' }}</div>
+          <div class="text-subtitle-1 genarate_id">{{ newTeacher.id || 'SHCB' }}</div>
         </div>
 
         <v-card width="750px">
@@ -132,7 +132,7 @@ export default {
 
   props: {
     currentTeacher: Object,
-    nextId: String
+    nextId: String,
   },
 
   watch: {
@@ -186,6 +186,28 @@ export default {
 </script>
 
 <style lang="scss">
+.v-overlay__content {
+  .mdi-checkbox-marked {
+    color: var(--ms-primary-color) !important;
+  }
+
+  .v-list-item--active {
+    .v-list-item__overlay {
+      background: var(--ms-white) !important;
+    }
+  }
+}
+
+.select_single {
+  .v-list-item--active {
+    .v-list-item__overlay {
+      background: var(--ms-primary-color) !important;
+    }
+  }
+}
+
+
+
 .custom_dialog {
   display: flex;
 
