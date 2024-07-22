@@ -12,4 +12,10 @@ module.exports = function (app) {
 
     app.route('/current-id')
         .get(controller.get_current_id);
+
+    app.route('/paged')
+        .get(controller.list_limit_teachers);
+
+    app.route('/search')
+        .get(controller.search_teachers);
 };

@@ -14,6 +14,31 @@ const getAllTeachers = () => {
     })
 }
 
+const getLimitTeachers = (limit, offset) => {
+  const params = { limit, offset }
+  return axios
+    .get(`/paged`, { params })
+    .then((response) => {
+      return response
+    })
+    .catch((error) => {
+      console.error('Error fetching teachers:', error)
+      throw error
+    })
+}
+
+const getTeacherBySearch = (searchTerm) => {
+  return axios
+    .get(`/search`, { params: { searchTerm } })
+    .then((response) => {
+      return response
+    })
+    .catch((error) => {
+      console.error('Error fetching teachers:', error)
+      throw error
+    })
+}
+
 const getATeacher = (teacherId) => {
   return axios
     .get(`/teachers/${teacherId}`)
@@ -79,4 +104,4 @@ const getNextId = () => {
     })
 }
 
-export { getAllTeachers, deleteTeacher, addTeacher, editTeacher, getATeacher, getNextId }
+export { getAllTeachers, deleteTeacher, addTeacher, editTeacher, getATeacher, getNextId, getLimitTeachers, getTeacherBySearch }

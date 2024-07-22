@@ -34,7 +34,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .enable-button {
   font-size: 13px;
   padding-left: 12px;
@@ -44,11 +44,12 @@ export default {
   border-radius: 4px;
   min-width: 96px;
   border: 1px solid var(--ms-border-button);
+
+  .v-btn__content {
+    font-weight: 600 !important;
+  }
 }
 
-.v-btn__content {
-  font-weight: 600 !important;
-}
 
 .enable-button:disabled {
   background-color: var(--ms-disable-background-button) !important;

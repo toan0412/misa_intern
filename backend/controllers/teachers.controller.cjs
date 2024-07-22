@@ -1,15 +1,53 @@
 var Teacher = require('../models/teachers.model.cjs');
 
-exports.list_all_teachers = function (req, res, err) {
-    Teacher.getAllTeachers(function (err, teacher) {
-
-        console.log('controller')
-        if (err)
-            res.send(err);
-        console.log('res', teacher);
-        res.send(teacher);
+exports.list_all_teachers = function (req, res) {
+    Teacher.getAllTeachers(function (err, teachers) {
+        console.log('controller');
+        if (err) {
+            res.status(500).send(err);
+        } else {
+            const totalRecords = teachers.length;
+            console.log('res', teachers);
+            res.json({
+                totalRecords: totalRecords,
+                teachers: teachers
+            });
+        }
     });
 };
+
+
+exports.list_limit_teachers = function (req, res) {
+    const limit = parseInt(req.query.limit, 10);
+    const offset = parseInt(req.query.offset, 10);
+
+    Teacher.getLimitTeachers(limit, offset, function (err, teachers) {
+        if (err) {
+            console.error('Error fetching teachers:', err);
+            return res.status(500).send(err);
+        }
+        console.log('Fetched teachers:', teachers);
+        res.json(teachers);
+    });
+};
+
+exports.search_teachers = function (req, res) {
+    const searchTerm = req.query.searchTerm;
+    Teacher.searchTeacher(searchTerm, function (err, teachers) {
+        if (err) {
+            console.error('Error searching teachers:', err);
+            return res.status(500).json({ error: true, message: 'Failed to search teachers', details: err });
+        }
+        const totalRecords = teachers.length;
+        console.log('res', teachers);
+        res.json({
+            totalRecords: totalRecords,
+            teachers: teachers
+        });
+    });
+};
+
+
 
 exports.add_a_teacher = function (req, res) {
     const new_teacher = new Teacher(req.body);

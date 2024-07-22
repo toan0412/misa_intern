@@ -1,7 +1,7 @@
 <template>
   <v-snackbar v-model="show" :color="snackbarType" timeout="6000" :multi-line="true" :class="['toast', snackbarType]">
-    <v-icon v-if="snackbarType === 'error'" class="toast-icon mr-2">mdi-alert-circle</v-icon>
-    <v-icon v-if="snackbarType === 'success'" class="toast-icon mr-2">mdi-check-circle</v-icon>
+    <v-icon v-if="snackbarType === 'error'" class="toast-icon mr-2">mdi-alert-circle-outline</v-icon>
+    <v-icon v-if="snackbarType === 'success'" class="toast-icon mr-2">mdi-check-circle-outline</v-icon>
     <v-icon v-if="snackbarType === 'warning'" class="toast-icon mr-2">mdi-alert</v-icon>
     <v-icon v-if="snackbarType === 'notification'" class="toast-icon mr-2">mdi-bell</v-icon>
 

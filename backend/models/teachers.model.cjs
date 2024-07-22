@@ -26,6 +26,39 @@ Teacher.getAllTeachers = function (result) {
     })
 }
 
+Teacher.getLimitTeachers = function (limit, offset, result) {
+    sql.query('SELECT * FROM teacher_info ORDER BY ID LIMIT ? OFFSET ?', [limit, offset], function (err, res) {
+        if (err) {
+            console.log('Error: ', err);
+            result(err, null);
+        } else {
+            console.log('Teachers: ', res);
+            result(null, res);
+        }
+    });
+};
+
+Teacher.searchTeacher = function (searchTerm, result) {
+    const sqlQuery = `
+        SELECT * FROM teacher_info WHERE ID LIKE ? OR FullName LIKE ? OR Phone LIKE ?`;
+
+    const searchParam = `%${searchTerm}%`;
+    const queryParams = [searchParam, searchParam, searchParam];
+
+    sql.query(sqlQuery, queryParams, function (err, res) {
+        if (err) {
+            console.log('Error: ', err);
+            result(err, null);
+        } else {
+            console.log('Search Results: ', res);
+            result(null, res);
+        }
+    });
+};
+
+
+
+
 Teacher.addTeacher = function (newTeacher, result) {
     if (Array.isArray(newTeacher.deviceManaged)) {
         newTeacher.deviceManaged = newTeacher.deviceManaged.join(', ');

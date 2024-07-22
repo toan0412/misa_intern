@@ -23,7 +23,7 @@
       <div class="content-header">
         <div class="content-header-item">
           <v-text-field v-model="searchInput" append-inner-icon="mdi-magnify" density="compact" max-width="525px"
-            label="Tìm kiếm" variant="solo" hide-details></v-text-field>
+            label="Tìm kiếm" variant="outlined" hide-details></v-text-field>
           <div class="content-header-item">
             <MSButton buttonColor="primaryColor" @click="showAddForm('-1')">Thêm</MSButton>
             <MSButton buttonColor="white" textColor="black">Xuất khẩu</MSButton>
@@ -33,11 +33,11 @@
       </div>
 
       <!-- table with skeleton loader -->
-      <v-skeleton-loader v-if="loading" class="mx-auto" elevation="12" max-width="1800" type="table"></v-skeleton-loader>
+      <v-skeleton-loader v-if="loading" class="mx-auto" max-width="1800" type="table"></v-skeleton-loader>
 
       <!-- table -->
-      <v-data-table v-else class="custom-table" :headers="headers" v-model="selected" :items="teachers" item-value="ID"
-        show-select>
+      <v-data-table v-else class="custom-table" :headers="headers" :items="teachers" v-model="selected"
+        :show-current-page="true" :items-per-page="30" fixed-header show-select item-value="ID" hide-default-footer>
         <template v-slot:item.isTraining="{ item }">
           <v-icon v-if="item.isTraining">mdi-check</v-icon>
         </template>
@@ -49,6 +49,18 @@
           <v-icon small @click="showDeleteDialog(item.ID)">mdi-trash-can-outline</v-icon>
         </template>
       </v-data-table>
+
+      <!-- custom <footer></footer> -->
+      <div class="footer-actions">
+        <IconButton class="footer-actions__button" icon="mdi-page-first" @click="goToFirstPage"></IconButton>
+        <IconButton class="footer-actions__button" icon="mdi-chevron-left" @click="previousPage"></IconButton>
+        <input v-model="currentPage" class="footer-actions__input" max-width="30px" />
+        <IconButton class="footer-actions__button" icon="mdi-chevron-right" @click="nextPage"></IconButton>
+        <IconButton class="footer-actions__button" icon="mdi-page-last" @click="goToLastPage"></IconButton>
+        <div class="footer-actions__info footer-actions__info--page-count">{{ currentPage }}/{{ pageCount }} trang</div>
+        <div class="footer-actions__info footer-actions__info--teacher-count">({{ teacherCount }} giáo viên)</div>
+      </div>
+
 
       <div>
         <yes-no-dialog ref="deleteDialog" message="Bạn có chắc chắn muốn xoá Cán bộ giáo viên đang chọn không?"
@@ -66,9 +78,9 @@
 <script>
 import MSButton from '@/components/button/MSButton.vue'
 import IconButton from '@/components/button/IconButton.vue'
-import { getAllTeachers, deleteTeacher, addTeacher, getATeacher, editTeacher, getNextId } from '@/services/TeachersServices'
+import { getAllTeachers, deleteTeacher, addTeacher, getATeacher, editTeacher, getNextId, getLimitTeachers, getTeacherBySearch } from '@/services/TeachersServices'
 import { defineAsyncComponent } from 'vue'
-import Toast from '@/components/toast/Toast.vue'
+import debounce from 'lodash.debounce'
 
 export default {
   data: () => ({
@@ -90,32 +102,70 @@ export default {
     idSelected: null,
     selectedTeacher: {},
     searchInput: '',
-    originalTeachers: [],
-    nextId: ''
+    nextId: '',
+    currentPage: 1,
+    pageCount: 1,
+    teacherCount: 0,
+
   }),
+
   mounted() {
-    this.fetchTeachers();
+    this.loadData();
   },
   methods: {
     //call api
-
     //Lấy danh sách giáo viên
+    async loadData() {
+      await this.fetchTeachers();
+      await this.getTeacherCount();
+    },
+
     fetchTeachers() {
-      getAllTeachers()
+      if (!parseInt(this.currentPage)) return
+      if (this.currentPage < 0) return
+      this.loading = true;
+      const offset = (this.currentPage - 1) * 30;
+      getLimitTeachers(30, offset)
         .then((teachers) => {
           this.teachers = teachers
-          this.originalTeachers = teachers
         })
         .finally(() => {
           this.loading = false;
         });
-
     },
+
+    //Lấy tổng bản ghi
+    getTeacherCount() {
+      getAllTeachers()
+        .then((res) => {
+          this.teacherCount = res.totalRecords;
+          this.pageCount = Math.ceil(this.teacherCount / 30)
+        })
+    },
+
+
+    //Tìm kiếm giáo viên
+    searchTeacher(data) {
+      this.currentPage = 1
+      getTeacherBySearch(data)
+        .then((res) => {
+          this.teachers = res.teachers;
+          this.teacherCount = res.totalRecords;
+          this.pageCount = Math.ceil(this.teacherCount / 30)
+        })
+    },
+
+    //debounce search
+    debouncedSearchTeacher: debounce(function (data) {
+      this.searchTeacher(data);
+    }, 300),
+
     //Thêm 1 giáo viên
     addItem(newTeacher) {
       addTeacher(newTeacher)
         .then(() => {
           this.fetchTeachers();
+          this.getTeacherCount();
           this.triggerSnackbar('success', 'Thành công', 'Thêm giảng viên thành công')
         })
         .catch((error) => {
@@ -136,6 +186,7 @@ export default {
         .then(() => {
           this.teachers = this.teachers.filter(teacher => teacher.ID !== ID);
           this.triggerSnackbar('success', 'Thành công', 'Xóa giảng viên thành công')
+          this.fetchTeachers();
         })
     },
     //Cập nhật thông tin 1 giáo viên theo ID
@@ -210,17 +261,44 @@ export default {
       this.$refs.snackbar.showSnackbar(type, title, message);
     },
 
+    //Action footer
+    nextPage() {
+      if (this.currentPage < this.pageCount) {
+        this.currentPage++;
+      }
+    },
+
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+
+    goToFirstPage() {
+      if (this.currentPage > 1) {
+        this.currentPage = 1;
+      }
+    },
+    goToLastPage() {
+      if (this.currentPage < this.pageCount) {
+        this.currentPage = this.pageCount;
+      }
+    },
+
   },
   //Theo dõi searchInput
   watch: {
-    searchInput(newInput, oldInput) {
+    searchInput(newInput) {
       if (newInput.length > 0) {
-        this.teachers = this.originalTeachers.filter(teacher =>
-          teacher.FullName.toLowerCase().includes(newInput.toLowerCase())
-        );
+        this.debouncedSearchTeacher(newInput);
       } else {
-        this.teachers = this.originalTeachers
+        this.fetchTeachers();
+        this.getTeacherCount();
       }
+    },
+    currentPage(newPage) {
+      if (newPage > this.pageCount || newPage < 1) return
+      this.fetchTeachers();
     }
   },
 
@@ -234,7 +312,9 @@ export default {
     AddNewTeacherForm: defineAsyncComponent(() =>
       import('./AddNewTeacherForm.vue')
     ),
-    Toast
+    Toast: defineAsyncComponent(() =>
+      import('@/components/toast/Toast.vue')
+    ),
   }
 }
 </script>
@@ -297,6 +377,7 @@ export default {
 }
 
 .custom-table {
+  max-height: 750px;
 
   th,
   td {
@@ -309,10 +390,11 @@ export default {
   }
 
   thead {
+
     tr {
       th {
         height: 64px !important;
-        background-color: var(--ms-header-gridpanel);
+        background-color: var(--ms-header-gridpanel) !important;
       }
     }
 
@@ -342,8 +424,31 @@ export default {
     }
 
   }
+}
 
+/* Footer */
+.footer-actions {
+  display: flex;
+  padding-top: 12px;
+  align-items: center;
+  box-shadow: 0 -4px 8px #e0e0e0;
 
+  .footer-actions__button {
+    border: 0;
+  }
 
+  .footer-actions__input {
+    margin-left: 8px;
+    width: 70px;
+    height: 36px;
+    border: 1px solid #cecece;
+    border-radius: 4px;
+    padding: 0 30px;
+  }
+
+  .footer-actions__info {
+    padding-left: 16px;
+    color: var(--ms-text-color);
+  }
 }
 </style>
