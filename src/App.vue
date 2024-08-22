@@ -38,9 +38,7 @@ body {
   width: 100%;
 }
 
-.sidebar-wrap {
-  max-width: 220px;
-}
+.sidebar-wrap {}
 
 .container {
   display: flex;

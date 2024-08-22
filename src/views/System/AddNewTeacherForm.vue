@@ -1,6 +1,6 @@
 <template>
   <div class="wrap">
-    <v-dialog v-model="dialog" max-width="972px" class="custom_dialog">
+    <v-dialog v-model="dialog" max-width="1022px" class="custom_dialog">
       <v-card>
         <div class="avatar_input">
           <div class="avatar_wrap">
@@ -11,12 +11,12 @@
           <div class="text-subtitle-1 genarate_id">{{ newTeacher.id || 'SHCB' }}</div>
         </div>
 
-        <v-card width="750px">
+        <v-card width="800px">
           <v-card-title>
             <span class="headline">Thêm hồ sơ Cán bộ, giáo viên</span>
           </v-card-title>
           <v-card-text>
-            <v-container>
+            <v-container>   <div class="header-item"></div>
               <v-row class="my-5 ">
                 <v-col cols="2" class="py-0">
                   <label>Số hiệu cán bộ</label>
@@ -79,12 +79,17 @@
               </v-row>
 
               <v-row class="my-5">
-                <v-col cols="5" class="py-0">
-                  <v-checkbox v-model="newTeacher.isTraining" color="#03ae66"
-                    label="Trình độ nghiệp vụ QLTB"></v-checkbox>
+                <v-col cols="4" class="py-0">
+                  <v-checkbox v-model="newTeacher.isTraining" label="Trình độ nghiệp vụ QLTB"></v-checkbox>
                 </v-col>
-                <v-col cols="7" class="py-0">
-                  <v-checkbox v-model="newTeacher.isWorking" color="#03ae66" label="Đang làm việc"></v-checkbox>
+                <v-col cols="3" class="py-0">
+                  <v-checkbox v-model="newTeacher.isWorking" label="Đang làm việc"></v-checkbox>
+                </v-col>
+                <v-col cols="5" class="py-0" v-if="!newTeacher.isWorking">
+                  <div class="date-picker-container">
+                    <div class="text-body-1 ">Ngày nghỉ việc </div>
+                    <v-date-input class="date-picker-input" variant="outlined" dense hide-details></v-date-input>
+                  </div>
                 </v-col>
               </v-row>
             </v-container>
@@ -104,6 +109,7 @@
 
 <script>
 import MSButton from '@/components/button/MSButton.vue'
+import { VDateInput } from 'vuetify/labs/VDateInput'
 
 export default {
   name: 'AddNewTeacherForm',
@@ -155,7 +161,8 @@ export default {
     nextId: {
       handler(newVal) {
         this.newTeacher.id = newVal
-      }
+      },
+      immediate: true
     }
   },
 
@@ -181,6 +188,7 @@ export default {
   },
   components: {
     MSButton,
+    VDateInput
   }
 };
 </script>
@@ -195,6 +203,12 @@ export default {
     .v-list-item__overlay {
       background: var(--ms-white) !important;
     }
+  }
+}
+
+.v-list-item__content {
+  .v-list-item-title {
+    font-size: 13px !important;
   }
 }
 
@@ -243,6 +257,8 @@ export default {
   .v-row {
     display: flex;
     margin: 4px 0 !important;
+    font-size: 13px;
+    color: #4d4f5c;
 
     .v-col {
       padding: 4px
@@ -265,7 +281,6 @@ export default {
   }
 
   .headline {
-    color: #4d4f5c;
     margin-left: 8px;
     margin-top: 4px;
     padding-bottom: 0;
@@ -289,7 +304,7 @@ export default {
   .v-field__input {
     min-height: 30px !important;
     height: 30px;
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .v-select--selected {
@@ -298,13 +313,47 @@ export default {
     }
   }
 
+  .v-label--clickable {
+    font-size: 13px;
+    opacity: 1 !important;
+    color: black;
+  }
+
   .v-select__selection-text {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .v-input__details {
     padding: 6px 6px;
   }
 
+  .date-picker-container {
+    display: flex;
+    position: relative;
+    align-items: center;
+
+    .text-body-1 {
+      font-size: 13px !important;
+      padding-top: 6px;
+      color: #4d4f5c;
+      padding-right: 12px;
+    }
+
+    .v-input__control {
+      height: 32px
+    }
+
+
+    .v-input__prepend {
+      position: absolute !important;
+      right: -10px !important;
+      bottom: 4px !important;
+      color: var(--ms-primary-color);
+    }
+
+    .v-field--no-label {
+      --v-field-padding-top: -10px !important;
+    }
+  }
 }
 </style>

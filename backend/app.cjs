@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-const route = require('../backend/routes/teachers.route.cjs');
+const teacherRoute = require('../backend/routes/teachers.route.cjs');
 const cors = require('cors');
 
 const port = 3000;
@@ -17,4 +17,4 @@ app.use(cors({
   origin: '*'
 }));
 
-route(app);
+app.use('/teachers', teacherRoute);

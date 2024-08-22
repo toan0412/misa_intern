@@ -50,7 +50,7 @@
         </template>
       </v-data-table>
 
-      <!-- custom <footer></footer> -->
+      <!-- custom footer -->
       <div class="footer-actions">
         <IconButton class="footer-actions__button" icon="mdi-page-first" @click="goToFirstPage"></IconButton>
         <IconButton class="footer-actions__button" icon="mdi-chevron-left" @click="previousPage"></IconButton>
@@ -109,15 +109,15 @@ export default {
 
   }),
 
-  mounted() {
+  created() {
     this.loadData();
   },
   methods: {
     //call api
     //Lấy danh sách giáo viên
-    async loadData() {
-      await this.fetchTeachers();
-      await this.getTeacherCount();
+    loadData() {
+      this.fetchTeachers();
+      this.getTeacherCount();
     },
 
     fetchTeachers() {
@@ -142,7 +142,6 @@ export default {
           this.pageCount = Math.ceil(this.teacherCount / 30)
         })
     },
-
 
     //Tìm kiếm giáo viên
     searchTeacher(data) {
@@ -169,7 +168,8 @@ export default {
           this.triggerSnackbar('success', 'Thành công', 'Thêm giảng viên thành công')
         })
         .catch((error) => {
-          this.triggerSnackbar('error', 'Lỗi', 'Vui lòng nhập đầy đủ dữ liệu');
+          console.log(error)
+          this.triggerSnackbar('error', 'Lỗi', 'Có lỗi xảy ra, vui lòng thử lại!');
         });
 
     },
@@ -395,6 +395,7 @@ export default {
       th {
         height: 64px !important;
         background-color: var(--ms-header-gridpanel) !important;
+        font-size: 13px !important;
       }
     }
 
@@ -420,6 +421,8 @@ export default {
     tr {
       td {
         height: 40px !important;
+        font-size: 13px;
+
       }
     }
 

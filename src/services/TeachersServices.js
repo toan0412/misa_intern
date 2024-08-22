@@ -17,7 +17,7 @@ const getAllTeachers = () => {
 const getLimitTeachers = (limit, offset) => {
   const params = { limit, offset }
   return axios
-    .get(`/paged`, { params })
+    .get(`/teachers/paged`, { params })
     .then((response) => {
       return response
     })
@@ -29,7 +29,7 @@ const getLimitTeachers = (limit, offset) => {
 
 const getTeacherBySearch = (searchTerm) => {
   return axios
-    .get(`/search`, { params: { searchTerm } })
+    .get(`/teachers/search`, { params: { searchTerm } })
     .then((response) => {
       return response
     })
@@ -92,7 +92,7 @@ const editTeacher = (teacherId, updatedTeacher) => {
 
 const getNextId = () => {
   return axios
-    .get('/current-id')
+    .get('/teachers/current-id')
     .then((response) => {
       const currentId = parseInt(response.maxId, 10) + 1;
       const nextId = 'NV' + currentId.toString().padStart(6, '0');

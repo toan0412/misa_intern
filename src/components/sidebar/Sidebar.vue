@@ -56,7 +56,9 @@ export default {
     max-width: 220px;
     background-color: var(--ms-background-sidebar);
     border-right: 0;
+    overflow: hidden;
   }
+
 
   .v-list--one-line {
     overflow: hidden;

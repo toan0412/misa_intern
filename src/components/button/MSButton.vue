@@ -46,7 +46,7 @@ export default {
   border: 1px solid var(--ms-border-button);
 
   .v-btn__content {
-    font-weight: 600 !important;
+    font-weight: 700 !important;
   }
 }
 
